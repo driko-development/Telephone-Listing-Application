@@ -4,8 +4,8 @@ Produce a command-line driven telephone listing program. The program shall be ca
 TODO: Add description of how code works
 
 ## Commands
-* ADD <Person> - Add a new person to the database
-* DEL <Person> - Remove someone by name
+* ADD <Person\> - Add a new person to the database
+* DEL <Person\> - Remove someone by name
 * DEL <Telephone #> - Remove someone by Telephone number
 * LIST - Produce a list of the members of the database
 
