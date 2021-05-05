@@ -53,6 +53,9 @@ namespace Telephone_Listing
             Console.WriteLine("     dotnet run DEL <person's name>");
             Console.WriteLine("     dotnet run DEL <telephone num>");
             Console.WriteLine("     dotnet run LIST");
+            Console.WriteLine("Example:");
+            Console.WriteLine("     dotnet run ADD \"Bruce Schneier\" \"(915) 555-4444\"");
+            Console.WriteLine("     dotnet run LIST");
         }
 
         private static bool SetUpArgs(string[] args)
