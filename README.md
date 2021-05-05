@@ -36,7 +36,8 @@ Run the following commands inside the project folder "TelephoneListing" to creat
 # Compilation and Execution
 ---
 Once all prerequisites are met use the dotnet CLI command: **dotnet run** to compile and run the program. <br>
-Running the program without any arguments will display the program usage.
+Running the program without any arguments will display the program usage. <br>
+**Note**: The dotnet CLI will not work unless inside the CSProject root folder.
 
 # Assumptions made
 ---
