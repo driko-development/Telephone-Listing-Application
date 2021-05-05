@@ -21,6 +21,7 @@ See the following tutorial on how to [install SQLite on Ubuntu](https://linuxhin
 
 Run the following commands inside the project folder "TelephoneListing" to create the Person database table <br>
 >sqlite3 person.db3
+>
 >sqlite> CREATE TABLE Person(
 >  Name VARCHAR(255) NOT NULL,
 >  PhoneNumber VARCHAR(255) NOT NULL  
