@@ -43,9 +43,10 @@ Run the following commands inside the project folder "TelephoneListing" to creat
 # Assumptions made
 ---
 1.  The user is able to set up the SQLite Person database with Person table
-2.  When deleting a person, the same input used to create the person is used (name or phone #)
-3.  Assuming the user creates the SQLite database in the root folder of the CSProject
-4.  Assumes the user changes the permissions and ownership of the log file and configuration file
+2.  The user does not enter duplicate information, to reduce SQL setup complexity no key constraints added
+3.  When deleting a person, the same input used to create the person is used (name or phone #)
+4.  Assuming the user creates the SQLite database in the root folder of the CSProject
+5.  Assumes the user changes the permissions and ownership of the log file and configuration file
 
 # Pros / Cons
 ---
