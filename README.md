@@ -54,5 +54,5 @@ Run the following commands inside the project folder "TelephoneListing" to creat
 
 ## Cons
 *   Not much exception handling especially when dealing with the SQL statements, due to time limitation.
-*   Logging template does not contain real user id
+*   Regular expressions do not match all inputs
 *   Due to dotnet not creating an executeable hard to change ownership and permissions
