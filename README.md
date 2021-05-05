@@ -1,7 +1,12 @@
 # Telephone-Listing-Application
 ---
+## Goal
 Produce a command-line driven telephone listing program. The program shall be capable of receiving and storing a list of people with their full name and telephone. <br>
-TODO: Add description of how code works
+
+## Description of how the code works
+The code starts by doing input validation on the command line arguments. It is during this initial set up that the regular expressions are used to validate the input. <br>
+After successful set up, then using the TelephoneListingService the specified command is run using its corresponding parameters. <br>
+The ListingService utilizes a SQLite Person database with Person table to keep track of people in the telephone list.
 
 ## Commands
 * ADD <Person\> - Add a new person to the database
