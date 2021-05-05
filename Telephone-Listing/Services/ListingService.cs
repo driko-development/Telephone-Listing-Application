@@ -1,4 +1,5 @@
 ﻿using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System.Threading.Tasks;
 using Telephone_Listing.Data;
 
@@ -8,13 +9,11 @@ namespace Telephone_Listing.Services
     
     public class ListingService
     {
-        private readonly IConfigurationRoot _config;
         private TelephoneListingLogic _telephoneListingLogic;
         
-        public ListingService(IConfigurationRoot config)
+        public ListingService(IConfigurationRoot config, ILoggerFactory loggerFactory)
         {
-            _config = config;
-            _telephoneListingLogic = new TelephoneListingLogic();
+            _telephoneListingLogic = new TelephoneListingLogic(loggerFactory);
             _telephoneListingLogic.DataAccess = new TelephoneDataAccess(config);
         }
 

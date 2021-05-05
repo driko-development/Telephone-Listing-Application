@@ -1,7 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System;
 using System.Linq;
-using Microsoft.Data.SqlClient;
+using Microsoft.Data.Sqlite;
 using System.Data;
 
 namespace Telephone_Listing.Data
@@ -9,7 +9,7 @@ namespace Telephone_Listing.Data
     public class TelephoneDataAccess : ITelephoneDataAccess
     {
         private readonly IConfigurationRoot _config;
-        private SqlConnection _sqlConnection;
+        private SqliteConnection _sqlConnection;
 
         public TelephoneDataAccess(IConfigurationRoot configuration)
         {
@@ -19,8 +19,8 @@ namespace Telephone_Listing.Data
 
         private void SetUpDatabaseConnection()
         {
-            var connString = _config.GetConnectionString("");
-            _sqlConnection = new SqlConnection(connString);
+            var connString = _config.GetConnectionString("DataConnection");
+            _sqlConnection = new SqliteConnection(connString);
         }
 
         public bool AddPerson(Person person)
@@ -31,7 +31,7 @@ namespace Telephone_Listing.Data
             int rows_affected;
             using (_sqlConnection)
             {
-                var cmd = new SqlCommand(sql, _sqlConnection);
+                var cmd = new SqliteCommand(sql, _sqlConnection);
                 cmd.Parameters.AddWithValue("@Name", person.Name);
                 cmd.Parameters.AddWithValue("@PhoneNumber", person.PhoneNumber);
 
@@ -39,7 +39,7 @@ namespace Telephone_Listing.Data
                 rows_affected = cmd.ExecuteNonQuery();
             }
 
-            if (rows_affected > 1) return true;
+            if (rows_affected == 1) return true;
             else return false;
         }
 
@@ -54,7 +54,7 @@ namespace Telephone_Listing.Data
             int rows_affected;
             using (_sqlConnection)
             {
-                var cmd = new SqlCommand(sql, _sqlConnection);
+                var cmd = new SqliteCommand(sql, _sqlConnection);
                 if (searchByName)
                 {
                     cmd.Parameters.AddWithValue("@Name", person.Name);
@@ -68,7 +68,7 @@ namespace Telephone_Listing.Data
                 rows_affected = cmd.ExecuteNonQuery();
             }
 
-            if (rows_affected > 1) return true;
+            if (rows_affected == 1) return true;
             else return false;
         }
 
@@ -78,15 +78,30 @@ namespace Telephone_Listing.Data
 
             var sql = "SELECT * " +
                       "FROM Person;";
-            using (_sqlConnection)
-            {
-                SqlDataAdapter sqlDataAdapter = new SqlDataAdapter(sql, _sqlConnection);
-                sqlDataAdapter.SelectCommand.Connection.Open();
 
-                sqlDataAdapter.Fill(telephoneListing);
+            try
+            {
+                using (_sqlConnection)
+                {
+                    using (var cmd = new SqliteCommand(sql,_sqlConnection))
+                    {
+                        cmd.Connection.Open();
+                        using(SqliteDataReader reader = cmd.ExecuteReader())
+                        {
+                            telephoneListing.Load(reader);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
             }
 
-            return PrettyPrintTelephones(telephoneListing);
+            if (telephoneListing.Rows.Count == 0)
+                return null;
+            else
+                return PrettyPrintTelephones(telephoneListing);
         }
 
         private string PrettyPrintTelephones(DataTable telephoneListing)

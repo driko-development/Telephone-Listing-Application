@@ -3,8 +3,12 @@ using System.IO;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Telephone_Listing.Data;
 using Telephone_Listing.Services;
+using Serilog;
+using Serilog.Extensions.Logging;
+using Serilog.Sinks.File;
 
 namespace Telephone_Listing
 {   
@@ -18,25 +22,37 @@ namespace Telephone_Listing
         {
             try
             {
+                // TODO: Set up log template
+                string logTemplate = "{Timestamp:yyyy-MM-dd HH:mm:ss} [{Level:u}] [{SourceContext}] {Message}{NewLine}{Exception}";
+
+                Log.Logger = new LoggerConfiguration()
+                        .WriteTo.File("log.txt", outputTemplate: logTemplate)
+                        .MinimumLevel.Debug()
+                        .Enrich.FromLogContext()
+                        .CreateLogger();
+
                 if (SetUpArgs(args))
                 {
-                    Console.WriteLine("You made it into the program");
-                    //MainAsync().Wait();
+                    MainAsync().Wait();
                 }
                 else
                 {
                     DisplayUsage();
                 }    
             }
-            catch
+            catch (Exception ex)
             {
-
+                Console.WriteLine($"An unexpected error occured setting up the arguments for the listing service\n{ex.Message}");
             }
         }
 
         private static void DisplayUsage()
         {
-            throw new NotImplementedException();
+            Console.WriteLine("Usage:");
+            Console.WriteLine("     dotnet run ADD <person's name> <telephone num>");
+            Console.WriteLine("     dotnet run DEL <person's name>");
+            Console.WriteLine("     dotnet run DEL <telephone num>");
+            Console.WriteLine("     dotnet run LIST");
         }
 
         private static bool SetUpArgs(string[] args)
@@ -44,22 +60,29 @@ namespace Telephone_Listing
             if (args.Length == 0)
             {
                 
-                Console.WriteLine("No args");
+                Console.WriteLine("No arguments provided.");
+
                 // No args supplied
                 return false;
             }   
             
             if (args.Length > 3)
             {
-                Console.WriteLine("Too many args");
+                Console.WriteLine("Too many arguments provided.");
                 // Too many args
                 return false;
             }
 
+            // initialize new person
             person = new Person();
+
+            // Validator object used to validate input
             InputValidator validator = new InputValidator();
 
+            // First argument is the mode or command the user wants to run
             var mode = args[0];
+
+            // If the command is add it takes two parameters
             if (mode.Equals("ADD", StringComparison.OrdinalIgnoreCase) && args.Length == 3)
             {
                 command = Command.ADD;
@@ -86,10 +109,12 @@ namespace Telephone_Listing
                 }
                 else
                 {
-                    Console.WriteLine("Need args to add");
+                    Console.WriteLine("Incorrect usage of ADD command.");
                     return false;
                 }
             }
+
+            // If the command is delete it takes one parameter, either phone number or name
             else if (mode.Equals("DEL", StringComparison.OrdinalIgnoreCase) && args.Length == 2)
             {
                 command = Command.DEL;
@@ -109,40 +134,77 @@ namespace Telephone_Listing
                         break;
                     case Data.Type.Invalid:
                     default:
+                        Console.WriteLine("Invalid parameter to DEL command.");
                         return false;
                 }
             }
+
+            // If the command is list then no additional parameters are required
             else if (mode.Equals("LIST", StringComparison.OrdinalIgnoreCase) && args.Length == 1)
             {
                 command = Command.LIST;
             }
+
+            // Only three supported commands, all others are not allowed
             else
             {
+                Console.WriteLine("Invalid input detected.");
                 // not valid
                 return false;
             }
 
+
+            // If all checks passed the arguments for our listing service are set up
             return true;
         }
 
         static async Task MainAsync()
         {
+            // Create and configure the service collection
             ServiceCollection serviceCollection = new ServiceCollection();
             ConfigureServices(serviceCollection);
 
+            // Create service provider
             IServiceProvider serviceProvider = serviceCollection.BuildServiceProvider();
 
-            await serviceProvider.GetService<ListingService>().Run(command, person);
+            try
+            {
+                await serviceProvider.GetService<ListingService>().Run(command, person);
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine("An error occurred inside the listing service.");
+                Console.WriteLine(ex.Message);
+            }
+            finally
+            {
+                Log.CloseAndFlush();
+            }
+            
         }
 
         private static void ConfigureServices(ServiceCollection serviceCollection)
         {
+            // Add logging
+            serviceCollection.AddSingleton(
+                LoggerFactory.Create(
+                    builder => {
+                        builder.AddSerilog(dispose: true);
+                    }
+                )
+            );
+
+            serviceCollection.AddLogging();
+
+            // Build configuration from appsettings.json
             configuration = new ConfigurationBuilder().SetBasePath(Directory.GetParent(AppContext.BaseDirectory).FullName)
                                 .AddJsonFile("appsettings.json", false)
                                 .Build();
 
+            // Add access to the configuration interface
             serviceCollection.AddSingleton<IConfigurationRoot>(configuration);
 
+            // Add the telephone listing application
             serviceCollection.AddTransient<ListingService>();
         }
     }
